@@ -1,0 +1,33 @@
+services:
+
+  # Keycloak instance 1
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4.1
+    command:
+      - start-dev
+      - --proxy-headers=xforwarded
+    environment:
+      # Keycloak admin user
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports:
+      - "9000:8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    
+    volumes:
+      - ./keycloakdb1.mv.db:/opt/keycloak/data/h2/keycloakdb.mv.db
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - keycloak
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
