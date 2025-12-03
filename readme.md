@@ -30,7 +30,7 @@ Client Scopes → mcp:tools → Mappers tab -> Add Mapper > From Predefined Mapp
 
 Tick:
 [x] email
-[x] eamail verified
+[x] email verified
 
 Save
 
