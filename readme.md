@@ -16,10 +16,24 @@ Go to Client scopes → Create client scope to add a client scope
 - Include in token scope: On
 
 
-After creation, from the mcp:tools details screen, 
-go to Mappers → Configure a new mapper → Select Audience
+Modify aud for mcp:tools scope
+Client Scopes → mcp:tools → Mappers tab -> Add Mapper 
+→ Configure a new mapper → Select Audience
 - Name: audience-config
 - Included Custom Audience: http://localhost:8000
+
+This will add aud: http://localhost:8000 to the token issued to clients with this scope.
+
+
+Add email and email verified to mcp:tools scope
+Client Scopes → mcp:tools → Mappers tab -> Add Mapper > From Predefined Mapper
+
+Tick:
+[x] email
+[x] eamail verified
+
+Save
+
 
 
 Go  Clients → Client registration → Client Policies → Policies tab

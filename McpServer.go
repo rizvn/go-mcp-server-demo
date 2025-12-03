@@ -16,9 +16,12 @@ type McpServer struct {
 }
 
 func (r *McpServer) Start() {
+
+	// Initialize OAuth provider
 	provider := &auth.OauthProvider{}
 	provider.Init(r.IssuerURL)
 
+	// Initialize OAuth middleware
 	oauthMiddleWare := &OAuthMiddleware{}
 	oauthMiddleWare.Init(provider, r.McpServerURL)
 
@@ -62,7 +65,6 @@ func (r *McpServer) Start() {
 	}
 }
 
-// HandleProtectedResourceMetadata handles the protected resource metadata endpoint
 func (r *McpServer) HandleProtectedResourceMetadata(w http.ResponseWriter, rq *http.Request) {
 	// Set CORS headers
 	w.Header().Set("Access-Control-Allow-Origin", "*")

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -101,6 +102,11 @@ func (r *OAuthMiddleware) Handler(next http.Handler) http.Handler {
 			return
 		}
 
+		// store user info in context for downstream handlers
+		if email, ok := claims["email"].(string); ok {
+			rq = rq.WithContext(context.WithValue(rq.Context(), "user_email", email))
+		}
+
 		// Authorization successful - proceed to next handler
 		next.ServeHTTP(w, rq)
 	})
@@ -167,7 +173,7 @@ func (r *OAuthMiddleware) validateScope(claims jwt.MapClaims) bool {
 // sendUnauthorized sends a 401 response with WWW-Authenticate header
 func (r *OAuthMiddleware) sendUnauthorized(w http.ResponseWriter, rq *http.Request) {
 	metadataURL := r.resourceURL + "/.well-known/oauth-protected-resource"
-	w.Header().Set("WWW-Authenticate",
-		fmt.Sprintf(`Bearer resource_metadata="%s", scope="openid profile email"`, metadataURL))
+	// tell client where to get resource metadata to authenticate
+	w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Bearer resource_metadata="%s", scope="openid profile email"`, metadataURL))
 	http.Error(w, "Unauthorized", http.StatusUnauthorized)
 }
