@@ -43,6 +43,7 @@ func (r *McpServer) Start() {
 	mux := http.NewServeMux()
 
 	// OAuth 2.1 metadata endpoint (no authorization required)
+	// clients will use this to discover the resource server's authorization server and scopes
 	mux.HandleFunc("/.well-known/oauth-protected-resource", r.HandleProtectedResourceMetadata)
 
 	// MCP endpoint (OAuth authorization required, with logging)
@@ -73,8 +74,9 @@ func (r *McpServer) HandleProtectedResourceMetadata(w http.ResponseWriter, rq *h
 		return
 	}
 
-	// for these paths mcp:tools must be in the jwt scope
-	// issuer must be an authorization server lister
+	// the resource identifier (what resource this server protects),
+	// which OAuth scopes the resource supports,
+	// which authorization servers (issuer URLs) are authoritative for access tokens for this resourc
 	metadata := oauthex.ProtectedResourceMetadata{
 		Resource:             r.McpServerURL,
 		ScopesSupported:      []string{"mcp:tools"},
