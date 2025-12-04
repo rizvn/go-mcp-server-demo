@@ -1,29 +1,25 @@
 # Build stage
 FROM golang:1.24-alpine AS builder
 
-WORKDIR /src
-COPY . /src
-RUN mkdir dist
+COPY . /code
+RUN mkdir -p /code/dist
 
-COPY .env dist/.env
+COPY .env /code/dist/.env
 
+WORKDIR /code/src
 
 # Install dependencies
 RUN go mod download
 
-WORKDIR /src
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o dist/mcp-go .
-
-# Copy .env file to the dist directory
-RUN cp .env dist/.env
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o ../dist/mcp-go .
 
 # Final stage
 FROM busybox:latest
 WORKDIR /app
 
 # Copy the built binary from the builder stage
-COPY --from=builder /src/dist .
+COPY --from=builder /code/dist .
 
 # run the application
 ENTRYPOINT ["./mcp-go"]
