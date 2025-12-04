@@ -4,8 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rizvn/dbchat/dbchat_graph"
-	"github.com/rizvn/dbchat/util"
+	"github.com/rizvn/go-mcp/util"
 )
 
 func TestUtil(t *testing.T) {
@@ -27,13 +26,4 @@ func TestUtil(t *testing.T) {
 			t.Errorf("Expected taga removed', but got '%s'", tagRemoved)
 		}
 	})
-
-	t.Run("Test GetMethodName", func(t *testing.T) {
-		g := &dbchat_graph.DbChatGraph{}
-		methodName := util.GetMethodName(g.StepAddRelevantExamples)
-		if !strings.HasSuffix(methodName, "StepAddRelevantExamples-fm") {
-			t.Errorf("Expected method name to end with 'StepAddRelevantExamples-fm', but got '%s'", methodName)
-		}
-	})
-
 }
