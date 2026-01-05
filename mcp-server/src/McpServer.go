@@ -19,7 +19,8 @@ func (r *McpServer) Start() {
 
 	// Initialize OAuth provider
 	provider := &auth.OauthProvider{}
-	provider.Init(r.IssuerURL)
+	provider.IssuerUrl = r.IssuerURL
+	provider.Init()
 
 	// Initialize OAuth middleware
 	oauthMiddleWare := &OAuthMiddleware{}

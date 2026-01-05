@@ -141,7 +141,7 @@ func (r *OAuthMiddleware) validateIssuer(claims jwt.MapClaims) bool {
 	if !ok {
 		return false
 	}
-	return iss == r.provider.Issuer
+	return iss == r.provider.IssuerUrl
 }
 
 // validateExpiration validates that the token has not expired

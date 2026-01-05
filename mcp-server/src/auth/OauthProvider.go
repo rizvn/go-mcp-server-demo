@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -12,16 +13,22 @@ import (
 type OauthProvider struct {
 	JwksUri string `json:"jwks_uri"`
 
-	Issuer          string
+	IssuerUrl       string
 	OpenIDConfigUrl string
 
 	jwks       map[string]jose.JSONWebKey
 	httpClient *http.Client
 }
 
-func (r *OauthProvider) Init(issuerUrl string) {
-	r.Issuer = issuerUrl
-	r.OpenIDConfigUrl = issuerUrl + "/.well-known/openid-configuration"
+func (r *OauthProvider) Init() {
+	if r.IssuerUrl == "" {
+		panics.OnError(fmt.Errorf("OauthProvider Init: IssuerUrl URL is required"), "")
+	}
+
+	// Set OpenIDConfigUrl if not provided
+	if r.OpenIDConfigUrl == "" {
+		r.OpenIDConfigUrl = r.IssuerUrl + "/.well-known/openid-configuration"
+	}
 
 	resp, err := http.Get(r.OpenIDConfigUrl)
 	panics.OnError(err, "failed to fetch OIDC oauthProvider document")
