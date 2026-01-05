@@ -1,4 +1,9 @@
+Based on blog post:
 https://medium.com/@wadahiro/protecting-mcp-server-with-oauth-2-1-a-practical-guide-using-go-and-keycloak-7544eb5379d3
+
+
+
+
 
 Run MCP Inspector
 

@@ -4,7 +4,7 @@ FROM golang:1.24-alpine AS builder
 COPY . /code
 RUN mkdir -p /code/dist
 
-COPY .env /code/dist/.env
+COPY src/.env /code/dist/.env
 
 WORKDIR /code/src
 

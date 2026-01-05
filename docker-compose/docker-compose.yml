@@ -1,5 +1,5 @@
+name: mcp-demo
 services:
-
   # Keycloak instance 1
   keycloak:
     image: quay.io/keycloak/keycloak:26.4.0
