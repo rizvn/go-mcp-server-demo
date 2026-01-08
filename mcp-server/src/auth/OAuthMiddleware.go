@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/modelcontextprotocol/go-sdk/oauthex"
 )
 
 type OAuthMiddleware struct {
@@ -27,6 +28,11 @@ func (r *OAuthMiddleware) Init() {
 
 func (r *OAuthMiddleware) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+
+		if rq.URL.Path == "/.well-known/oauth-protected-resource" {
+			r.HandleProtectedResourceMetadata(w, rq)
+			return
+		}
 
 		// Check Authorization header
 		authHeader := rq.Header.Get("Authorization")
@@ -179,4 +185,30 @@ func (r *OAuthMiddleware) sendUnauthorized(w http.ResponseWriter, rq *http.Reque
 	// tell client where to get resource metadata to authenticate
 	w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Bearer resource_metadata="%s", scope="openid profile email"`, metadataURL))
 	http.Error(w, "Unauthorized", http.StatusUnauthorized)
+}
+
+// OAuth 2.1 metadata endpoint (no authorization required)
+// clients will use this to discover the resource server's authorization server and scopes
+func (r *OAuthMiddleware) HandleProtectedResourceMetadata(w http.ResponseWriter, rq *http.Request) {
+	// Set CORS headers
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	if rq.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	// the resource identifier (what resource this server protects),
+	// which OAuth scopes the resource supports,
+	// which authorization servers (issuer URLs) are authoritative for access tokens for this resourc
+	metadata := oauthex.ProtectedResourceMetadata{
+		Resource:             r.TargetAudienceUrl,
+		ScopesSupported:      []string{"mcp:tools"},
+		AuthorizationServers: []string{r.IssuerUrl},
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(metadata)
 }

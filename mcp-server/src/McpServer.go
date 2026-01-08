@@ -1,12 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/modelcontextprotocol/go-sdk/oauthex"
 	"github.com/rizvn/go-mcp/auth"
 	"github.com/rizvn/go-mcp/echo"
 )
@@ -51,10 +49,6 @@ func (r *McpServer) Start() {
 	// Setup routing
 	mux := http.NewServeMux()
 
-	// OAuth 2.1 metadata endpoint (no authorization required)
-	// clients will use this to discover the resource server's authorization server and scopes
-	mux.HandleFunc("/.well-known/oauth-protected-resource", r.HandleProtectedResourceMetadata)
-
 	// MCP endpoint (OAuth authorization required, with logging)
 	mux.Handle("/", LoggingMiddleware(oauthMiddleWare.Handler(mcpHandler)))
 
@@ -69,28 +63,4 @@ func (r *McpServer) Start() {
 	if err := http.ListenAndServe(":8000", mux); err != nil {
 		log.Printf("Server failed: %v", err)
 	}
-}
-
-func (r *McpServer) HandleProtectedResourceMetadata(w http.ResponseWriter, rq *http.Request) {
-	// Set CORS headers
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-
-	if rq.Method == "OPTIONS" {
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-
-	// the resource identifier (what resource this server protects),
-	// which OAuth scopes the resource supports,
-	// which authorization servers (issuer URLs) are authoritative for access tokens for this resourc
-	metadata := oauthex.ProtectedResourceMetadata{
-		Resource:             r.McpServerURL,
-		ScopesSupported:      []string{"mcp:tools"},
-		AuthorizationServers: []string{r.IssuerURL},
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(metadata)
 }
