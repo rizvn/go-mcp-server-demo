@@ -24,8 +24,11 @@ func (r *McpServer) Start() {
 	provider.Init()
 
 	// Initialize OAuth middleware
-	oauthMiddleWare := &auth.OAuthMiddleware{}
-	oauthMiddleWare.Init(provider, r.McpServerURL)
+	oauthMiddleWare := &auth.OAuthMiddleware{
+		IssuerUrl:         r.IssuerURL,
+		TargetAudienceUrl: r.McpServerURL,
+	}
+	oauthMiddleWare.Init()
 
 	// Create MCP server
 	server := mcp.NewServer(&mcp.Implementation{
