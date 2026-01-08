@@ -27,6 +27,7 @@ func (r *OAuthMiddleware) Init() {
 
 func (r *OAuthMiddleware) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
+
 		// Check Authorization header
 		authHeader := rq.Header.Get("Authorization")
 		if authHeader == "" {
