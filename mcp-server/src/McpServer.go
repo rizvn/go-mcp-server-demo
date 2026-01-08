@@ -8,6 +8,7 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/modelcontextprotocol/go-sdk/oauthex"
 	"github.com/rizvn/go-mcp/auth"
+	"github.com/rizvn/go-mcp/echo"
 )
 
 type McpServer struct {
@@ -23,7 +24,7 @@ func (r *McpServer) Start() {
 	provider.Init()
 
 	// Initialize OAuth middleware
-	oauthMiddleWare := &OAuthMiddleware{}
+	oauthMiddleWare := &auth.OAuthMiddleware{}
 	oauthMiddleWare.Init(provider, r.McpServerURL)
 
 	// Create MCP server
@@ -32,11 +33,12 @@ func (r *McpServer) Start() {
 		Version: "1.0.0",
 	}, nil)
 
+	echoTool := &echo.EchoTool{}
 	// add tool to server
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "echo",
 		Description: "Echoes back the input message",
-	}, Echo)
+	}, echoTool.Call)
 
 	// create streamable HTTP handler
 	mcpHandler := mcp.NewStreamableHTTPHandler(func(*http.Request) *mcp.Server {

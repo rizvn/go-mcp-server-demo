@@ -61,7 +61,7 @@ func (r *OauthProvider) GetKey(kid string) jose.JSONWebKey {
 
 		// Try to get the key again
 		jwk, ok = r.jwks[kid]
-		panics.OnFalse(ok, "JWK with kid %s not found in provider JWKS", kid)
+		panics.OnFalse(ok, fmt.Sprintf("JWK with kid %s not found in provider JWKS", kid))
 	}
 	return jwk
 }

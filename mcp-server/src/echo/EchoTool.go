@@ -1,4 +1,4 @@
-package main
+package echo
 
 import (
 	"context"
@@ -17,7 +17,9 @@ type EchoOutput struct {
 	Response string `json:"response" jsonschema:"The echoed response"`
 }
 
-func Echo(ctx context.Context, req *mcp.CallToolRequest, input *EchoInput) (*mcp.CallToolResult, EchoOutput, error) {
+type EchoTool struct{}
+
+func (r *EchoTool) Call(ctx context.Context, req *mcp.CallToolRequest, input *EchoInput) (*mcp.CallToolResult, EchoOutput, error) {
 	authHeader := req.GetExtra().Header.Get("Authorization")
 	accessToken := strings.TrimPrefix(authHeader, "Bearer ")
 

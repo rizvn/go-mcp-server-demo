@@ -1,4 +1,4 @@
-package main
+package auth
 
 import (
 	"context"
@@ -10,15 +10,14 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/rizvn/go-mcp/auth"
 )
 
 type OAuthMiddleware struct {
-	provider          *auth.OauthProvider
+	provider          *OauthProvider
 	targetAudienceUrl string
 }
 
-func (r *OAuthMiddleware) Init(provider *auth.OauthProvider, targetAudienceUrl string) {
+func (r *OAuthMiddleware) Init(provider *OauthProvider, targetAudienceUrl string) {
 	r.provider = provider
 	r.targetAudienceUrl = targetAudienceUrl
 }

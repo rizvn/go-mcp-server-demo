@@ -7,7 +7,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/joho/godotenv v1.5.1
 	github.com/modelcontextprotocol/go-sdk v1.1.0
-	github.com/rizvn/panics v1.0.0
+	github.com/rizvn/panics v1.0.5
 )
 
 require (
