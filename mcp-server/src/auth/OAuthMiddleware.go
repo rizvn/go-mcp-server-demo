@@ -17,6 +17,7 @@ type OAuthMiddleware struct {
 	provider          *OauthProvider
 	TargetAudienceUrl string
 	IssuerUrl         string
+	Scope             string
 }
 
 func (r *OAuthMiddleware) Init() {
@@ -205,7 +206,7 @@ func (r *OAuthMiddleware) HandleProtectedResourceMetadata(w http.ResponseWriter,
 	// which authorization servers (issuer URLs) are authoritative for access tokens for this resourc
 	metadata := oauthex.ProtectedResourceMetadata{
 		Resource:             r.TargetAudienceUrl,
-		ScopesSupported:      []string{"mcp:tools"},
+		ScopesSupported:      []string{r.Scope},
 		AuthorizationServers: []string{r.IssuerUrl},
 	}
 

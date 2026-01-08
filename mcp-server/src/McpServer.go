@@ -12,19 +12,16 @@ import (
 type McpServer struct {
 	IssuerURL    string
 	McpServerURL string
+	Scope        string
 }
 
 func (r *McpServer) Start() {
-
-	// Initialize OAuth provider
-	provider := &auth.OauthProvider{}
-	provider.IssuerUrl = r.IssuerURL
-	provider.Init()
 
 	// Initialize OAuth middleware
 	oauthMiddleWare := &auth.OAuthMiddleware{
 		IssuerUrl:         r.IssuerURL,
 		TargetAudienceUrl: r.McpServerURL,
+		Scope:             r.Scope,
 	}
 	oauthMiddleWare.Init()
 
@@ -50,11 +47,10 @@ func (r *McpServer) Start() {
 	mux := http.NewServeMux()
 
 	// MCP endpoint (OAuth authorization required, with logging)
-	mux.Handle("/", LoggingMiddleware(oauthMiddleWare.Handler(mcpHandler)))
+	mux.Handle("/", oauthMiddleWare.Handler(mcpHandler))
 
 	log.Println("Starting MCP server on :8000")
 	log.Printf("Authorization Server URL: %s", r.IssuerURL)
-	log.Printf("JWKS URL: %s", provider.JwksUri)
 	log.Printf("Resource URL: %s", r.McpServerURL)
 	log.Println("Tool available: echo")
 	log.Println("OAuth2.1 endpoint:")
