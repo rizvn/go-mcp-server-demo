@@ -2,8 +2,9 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 )
@@ -14,16 +15,16 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		start := time.Now()
 
 		// Log basic request info
-		log.Printf("[%s] %s %s", r.Method, r.URL.Path, r.RemoteAddr)
+		slog.Info(fmt.Sprintf("[%s] %s %s", r.Method, r.URL.Path, r.RemoteAddr))
 
 		// Log POST body if present
 		if r.Method == "POST" && r.Body != nil {
 			bodyBytes, err := io.ReadAll(r.Body)
 			if err != nil {
-				log.Printf("Error reading body: %v", err)
+				slog.Info(fmt.Sprintf("Error reading body: %v", err))
 			} else {
 				// Log the body
-				log.Printf("Body: %s", string(bodyBytes))
+				slog.Info(fmt.Sprintf("Body: %s", string(bodyBytes)))
 				// Restore the body for the next handler
 				r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 			}
@@ -31,6 +32,6 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 
-		log.Printf("Request completed in %v", time.Since(start))
+		slog.Info(fmt.Sprintf("Request completed in %v", time.Since(start)))
 	})
 }
