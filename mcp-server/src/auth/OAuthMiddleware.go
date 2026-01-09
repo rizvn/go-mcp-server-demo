@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -59,13 +59,13 @@ func (r *OAuthMiddleware) Handler(next http.Handler) http.Handler {
 		}, jwt.WithValidMethods([]string{"RS256"}))
 
 		if err != nil {
-			log.Printf("Failed to parse token: %v", err)
+			slog.Error(fmt.Sprintf("Failed to parse token: %v", err))
 			r.sendUnauthorized(w, rq)
 			return
 		}
 
 		if !token.Valid {
-			log.Printf("Invalid token")
+			slog.Error(fmt.Sprintf("Invalid token"))
 			r.sendUnauthorized(w, rq)
 			return
 		}
@@ -73,28 +73,21 @@ func (r *OAuthMiddleware) Handler(next http.Handler) http.Handler {
 		// Get claims for validation
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
-			log.Printf("Invalid claims type")
+			slog.Error(fmt.Sprintf("Invalid claims type"))
 			r.sendUnauthorized(w, rq)
 			return
 		}
 
-		// Debug: Dump JWT access token before validation
-		log.Printf("=== JWT Access Token Debug ===")
-		log.Printf("Raw Token: %s", tokenString)
-		claimsJSON, _ := json.MarshalIndent(claims, "", "  ")
-		log.Printf("Claims: %s", string(claimsJSON))
-		log.Printf("===============================")
-
 		// Validate audience (MUST): Verify this resource server is in the audience
 		if !r.validateAudience(claims) {
-			log.Printf("Invalid audience")
+			slog.Error(fmt.Sprintf("Invalid audience"))
 			r.sendUnauthorized(w, rq)
 			return
 		}
 
 		// Validate issuer (MUST): Verify token is issued by expected authorization server
 		if !r.validateIssuer(claims) {
-			log.Printf("Invalid issuer")
+			slog.Error(fmt.Sprintf("Invalid issuer"))
 			r.sendUnauthorized(w, rq)
 			return
 		}
@@ -102,14 +95,14 @@ func (r *OAuthMiddleware) Handler(next http.Handler) http.Handler {
 		// Validate expiration (MUST): Ensure token is not expired
 		// Note: jwt.Parse already validates exp by default, but we explicitly check here for clarity
 		if !r.validateExpiration(claims) {
-			log.Printf("Token expired")
+			slog.Error(fmt.Sprintf("Token expired"))
 			r.sendUnauthorized(w, rq)
 			return
 		}
 
 		// Validate scope: Verify token has required scopes (optional, depends on your requirements)
 		if !r.validateScope(claims) {
-			log.Printf("Insufficient scope")
+			slog.Error(fmt.Sprintf("Insufficient scope"))
 			r.sendUnauthorized(w, rq)
 			return
 		}
