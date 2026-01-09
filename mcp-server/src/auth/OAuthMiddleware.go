@@ -14,10 +14,10 @@ import (
 )
 
 type OAuthMiddleware struct {
-	provider          *OauthProvider
-	TargetAudienceUrl string
-	IssuerUrl         string
-	Scope             string
+	provider       *OauthProvider
+	TargetAudience string
+	IssuerUrl      string
+	Scope          string
 }
 
 func (r *OAuthMiddleware) Init() {
@@ -134,10 +134,10 @@ func (r *OAuthMiddleware) validateAudience(claims jwt.MapClaims) bool {
 	// aud can be a string or array of strings
 	switch v := aud.(type) {
 	case string:
-		return v == r.TargetAudienceUrl
+		return v == r.TargetAudience
 	case []interface{}:
 		for _, a := range v {
-			if audStr, ok := a.(string); ok && audStr == r.TargetAudienceUrl {
+			if audStr, ok := a.(string); ok && audStr == r.TargetAudience {
 				return true
 			}
 		}
@@ -184,7 +184,7 @@ func (r *OAuthMiddleware) validateScope(claims jwt.MapClaims) bool {
 
 // sendUnauthorized sends a 401 response with WWW-Authenticate header
 func (r *OAuthMiddleware) sendUnauthorized(w http.ResponseWriter, rq *http.Request) {
-	metadataURL := r.TargetAudienceUrl + "/.well-known/oauth-protected-resource"
+	metadataURL := r.TargetAudience + "/.well-known/oauth-protected-resource"
 	// tell client where to get resource metadata to authenticate
 	w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Bearer resource_metadata="%s", scope="openid profile email"`, metadataURL))
 	http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -207,7 +207,7 @@ func (r *OAuthMiddleware) HandleProtectedResourceMetadata(w http.ResponseWriter,
 	// which OAuth scopes the resource supports,
 	// which authorization servers (issuer URLs) are authoritative for access tokens for this resourc
 	metadata := oauthex.ProtectedResourceMetadata{
-		Resource:             r.TargetAudienceUrl,
+		Resource:             r.TargetAudience,
 		ScopesSupported:      []string{r.Scope},
 		AuthorizationServers: []string{r.IssuerUrl},
 	}

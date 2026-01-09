@@ -21,9 +21,9 @@ func main() {
 		panic(fmt.Sprintf("ISSUER_URL environment variable is required"))
 	}
 
-	mcpServerUrl := os.Getenv("MCP_SERVER_URL")
-	if mcpServerUrl == "" {
-		panic(fmt.Sprintf("MCP_SERVER_URL environment variable is required"))
+	targetAudience := os.Getenv("TARGET_AUDIENCE")
+	if targetAudience == "" {
+		panic(fmt.Sprintf("TARGET_AUDIENCE environment variable is required"))
 	}
 
 	scope := os.Getenv("SCOPE")
@@ -32,9 +32,9 @@ func main() {
 	}
 
 	server := &McpServer{
-		IssuerURL:    issuerURL,
-		McpServerURL: mcpServerUrl,
-		Scope:        scope,
+		IssuerURL:      issuerURL,
+		TargetAudience: targetAudience,
+		Scope:          scope,
 	}
 
 	server.Start()

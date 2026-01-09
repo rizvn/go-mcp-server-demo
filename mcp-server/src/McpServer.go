@@ -11,18 +11,18 @@ import (
 )
 
 type McpServer struct {
-	IssuerURL    string
-	McpServerURL string
-	Scope        string
+	IssuerURL      string
+	TargetAudience string
+	Scope          string
 }
 
 func (r *McpServer) Start() {
 
 	// Initialize OAuth middleware
 	oauthMiddleWare := &auth.OAuthMiddleware{
-		IssuerUrl:         r.IssuerURL,
-		TargetAudienceUrl: r.McpServerURL,
-		Scope:             r.Scope,
+		IssuerUrl:      r.IssuerURL,
+		TargetAudience: r.TargetAudience,
+		Scope:          r.Scope,
 	}
 	oauthMiddleWare.Init()
 
@@ -52,7 +52,7 @@ func (r *McpServer) Start() {
 
 	slog.Info(fmt.Sprintf("Starting MCP server on :8000"))
 	slog.Info(fmt.Sprintf("Authorization Server URL: %s", r.IssuerURL))
-	slog.Info(fmt.Sprintf("Resource URL: %s", r.McpServerURL))
+	slog.Info(fmt.Sprintf("Resource URL: %s", r.TargetAudience))
 	slog.Info(fmt.Sprintf("Tool available: echo"))
 	slog.Info(fmt.Sprintf("OAuth2.1 endpoint:"))
 	slog.Info(fmt.Sprintf("- /.well-known/oauth-protected-resource"))
