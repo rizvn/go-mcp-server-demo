@@ -14,9 +14,7 @@ type Jwks struct {
 	JwksUri         string `json:"jwks_uri"`
 	IssuerUrl       string
 	OpenIDConfigUrl string
-
-	keys       map[string]jose.JSONWebKey
-	httpClient *http.Client
+	keys            map[string]jose.JSONWebKey
 }
 
 func (r *Jwks) Init() {
@@ -42,19 +40,18 @@ func (r *Jwks) Init() {
 	panics.OnError(err, "failed to unmarshal OIDC oauthProvider document")
 
 	// Fetch JWKS
-	jwks, err := r.fetchJwks()
+	jwks, err := r.fetchKeys()
 	panics.OnError(err, "failed to fetch JWKS from jwks")
 
 	r.keys = jwks
-	r.httpClient = &http.Client{}
 }
 
 func (r *Jwks) GetKey(kid string) jose.JSONWebKey {
 	jwk, ok := r.keys[kid]
 	if !ok {
 		// Try to refresh JWKS
-		jwks, err := r.fetchJwks()
-		panics.OnError(err, "failed to refresh JWKS from jwks")
+		jwks, err := r.fetchKeys()
+		panics.OnError(err, "failed to refresh JWKS from "+r.JwksUri)
 
 		// Update local keys
 		r.keys = jwks
@@ -66,7 +63,7 @@ func (r *Jwks) GetKey(kid string) jose.JSONWebKey {
 	return jwk
 }
 
-func (r *Jwks) fetchJwks() (map[string]jose.JSONWebKey, error) {
+func (r *Jwks) fetchKeys() (map[string]jose.JSONWebKey, error) {
 	resp, err := http.Get(r.JwksUri)
 	if err != nil {
 		return nil, err
