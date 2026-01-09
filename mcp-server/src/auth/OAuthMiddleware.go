@@ -30,6 +30,8 @@ func (r *OAuthMiddleware) Init() {
 func (r *OAuthMiddleware) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
 
+		// Handle OAuth 2.1 protected resource metadata endpoint
+		// no authorization required
 		if rq.URL.Path == "/.well-known/oauth-protected-resource" {
 			r.HandleProtectedResourceMetadata(w, rq)
 			return

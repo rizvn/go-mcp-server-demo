@@ -1,7 +1,8 @@
 package main
 
 import (
-	"log"
+	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -49,14 +50,14 @@ func (r *McpServer) Start() {
 	// MCP endpoint (OAuth authorization required, with logging)
 	mux.Handle("/", oauthMiddleWare.Handler(mcpHandler))
 
-	log.Println("Starting MCP server on :8000")
-	log.Printf("Authorization Server URL: %s", r.IssuerURL)
-	log.Printf("Resource URL: %s", r.McpServerURL)
-	log.Println("Tool available: echo")
-	log.Println("OAuth2.1 endpoint:")
-	log.Println("- /.well-known/oauth-protected-resource")
+	slog.Info(fmt.Sprintf("Starting MCP server on :8000"))
+	slog.Info(fmt.Sprintf("Authorization Server URL: %s", r.IssuerURL))
+	slog.Info(fmt.Sprintf("Resource URL: %s", r.McpServerURL))
+	slog.Info(fmt.Sprintf("Tool available: echo"))
+	slog.Info(fmt.Sprintf("OAuth2.1 endpoint:"))
+	slog.Info(fmt.Sprintf("- /.well-known/oauth-protected-resource"))
 
 	if err := http.ListenAndServe(":8000", mux); err != nil {
-		log.Printf("Server failed: %v", err)
+		slog.Error(fmt.Sprintf("Server failed: %v", err))
 	}
 }

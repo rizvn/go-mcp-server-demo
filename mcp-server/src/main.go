@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"log/slog"
 	"os"
 
@@ -12,23 +12,23 @@ func main() {
 	// load environment variableÓs from .env file
 	err := godotenv.Load(".env")
 	if err != nil {
-		log.Default().Printf("Warning: No  env file found, %v\n", err)
+		panic(fmt.Sprintf("Warning: No  env file found, %v\n", err))
 	}
 	configureLogging()
 
 	issuerURL := os.Getenv("ISSUER_URL")
 	if issuerURL == "" {
-		log.Fatal("ISSUER_URL environment variable is required")
+		panic(fmt.Sprintf("ISSUER_URL environment variable is required"))
 	}
 
 	mcpServerUrl := os.Getenv("MCP_SERVER_URL")
 	if mcpServerUrl == "" {
-		log.Fatal("MCP_SERVER_URL environment variable is required")
+		panic(fmt.Sprintf("MCP_SERVER_URL environment variable is required"))
 	}
 
 	scope := os.Getenv("SCOPE")
 	if scope == "" {
-		log.Fatal("SCOPE environment variable is required")
+		panic(fmt.Sprintf("SCOPE environment variable is required"))
 	}
 
 	server := &McpServer{
