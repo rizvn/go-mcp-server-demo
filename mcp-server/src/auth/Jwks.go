@@ -10,19 +10,18 @@ import (
 	"github.com/rizvn/panics"
 )
 
-type OauthProvider struct {
-	JwksUri string `json:"jwks_uri"`
-
+type Jwks struct {
+	JwksUri         string `json:"jwks_uri"`
 	IssuerUrl       string
 	OpenIDConfigUrl string
 
-	jwks       map[string]jose.JSONWebKey
+	keys       map[string]jose.JSONWebKey
 	httpClient *http.Client
 }
 
-func (r *OauthProvider) Init() {
+func (r *Jwks) Init() {
 	if r.IssuerUrl == "" {
-		panics.OnError(fmt.Errorf("OauthProvider Init: IssuerUrl URL is required"), "")
+		panics.OnError(fmt.Errorf("Jwks Init: IssuerUrl URL is required"), "")
 	}
 
 	// Set OpenIDConfigUrl if not provided
@@ -30,6 +29,7 @@ func (r *OauthProvider) Init() {
 		r.OpenIDConfigUrl = r.IssuerUrl + "/.well-known/openid-configuration"
 	}
 
+	// Fetch OIDC configuration
 	resp, err := http.Get(r.OpenIDConfigUrl)
 	panics.OnError(err, "failed to fetch OIDC oauthProvider document")
 	defer resp.Body.Close()
@@ -37,36 +37,36 @@ func (r *OauthProvider) Init() {
 	body, err := io.ReadAll(resp.Body)
 	panics.OnError(err, "failed to read OIDC oauthProvider document")
 
+	// Unmarshal OIDC configuration into Jwks struct, so that JwksUri is populated
 	err = json.Unmarshal(body, r)
 	panics.OnError(err, "failed to unmarshal OIDC oauthProvider document")
 
 	// Fetch JWKS
 	jwks, err := r.fetchJwks()
-	panics.OnError(err, "failed to fetch JWKS from provider")
+	panics.OnError(err, "failed to fetch JWKS from jwks")
 
-	r.jwks = jwks
+	r.keys = jwks
 	r.httpClient = &http.Client{}
-
 }
 
-func (r *OauthProvider) GetKey(kid string) jose.JSONWebKey {
-	jwk, ok := r.jwks[kid]
+func (r *Jwks) GetKey(kid string) jose.JSONWebKey {
+	jwk, ok := r.keys[kid]
 	if !ok {
 		// Try to refresh JWKS
 		jwks, err := r.fetchJwks()
-		panics.OnError(err, "failed to refresh JWKS from provider")
+		panics.OnError(err, "failed to refresh JWKS from jwks")
 
-		// Update local jwks
-		r.jwks = jwks
+		// Update local keys
+		r.keys = jwks
 
 		// Try to get the key again
-		jwk, ok = r.jwks[kid]
-		panics.OnFalse(ok, fmt.Sprintf("JWK with kid %s not found in provider JWKS", kid))
+		jwk, ok = r.keys[kid]
+		panics.OnFalse(ok, fmt.Sprintf("JWK with kid %s not found in jwks JWKS", kid))
 	}
 	return jwk
 }
 
-func (r *OauthProvider) fetchJwks() (map[string]jose.JSONWebKey, error) {
+func (r *Jwks) fetchJwks() (map[string]jose.JSONWebKey, error) {
 	resp, err := http.Get(r.JwksUri)
 	if err != nil {
 		return nil, err

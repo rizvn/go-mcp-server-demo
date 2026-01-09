@@ -13,21 +13,21 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/oauthex"
 )
 
-type OAuthMiddleware struct {
-	provider       *OauthProvider
+type AuthMiddleware struct {
+	jwks           *Jwks
 	TargetAudience string
 	IssuerUrl      string
 	Scope          string
 }
 
-func (r *OAuthMiddleware) Init() {
-	r.provider = &OauthProvider{
+func (r *AuthMiddleware) Init() {
+	r.jwks = &Jwks{
 		IssuerUrl: r.IssuerUrl,
 	}
-	r.provider.Init()
+	r.jwks.Init()
 }
 
-func (r *OAuthMiddleware) Handler(next http.Handler) http.Handler {
+func (r *AuthMiddleware) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, rq *http.Request) {
 
 		// Handle OAuth 2.1 protected resource metadata endpoint
@@ -54,7 +54,7 @@ func (r *OAuthMiddleware) Handler(next http.Handler) http.Handler {
 		// Validate JWT token using JWKS with algorithm validation
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 			// Ensure the token's signing method is RSA
-			jwk := r.provider.GetKey(token.Header["kid"].(string))
+			jwk := r.jwks.GetKey(token.Header["kid"].(string))
 			return jwk.Key, nil
 		}, jwt.WithValidMethods([]string{"RS256"}))
 
@@ -118,7 +118,7 @@ func (r *OAuthMiddleware) Handler(next http.Handler) http.Handler {
 }
 
 // validateAudience validates that the token's audience matches this resource server
-func (r *OAuthMiddleware) validateAudience(claims jwt.MapClaims) bool {
+func (r *AuthMiddleware) validateAudience(claims jwt.MapClaims) bool {
 	aud, ok := claims["aud"]
 	if !ok {
 		return false
@@ -141,16 +141,16 @@ func (r *OAuthMiddleware) validateAudience(claims jwt.MapClaims) bool {
 }
 
 // validateIssuer validates that the token's issuer matches the expected authorization server
-func (r *OAuthMiddleware) validateIssuer(claims jwt.MapClaims) bool {
+func (r *AuthMiddleware) validateIssuer(claims jwt.MapClaims) bool {
 	iss, ok := claims["iss"].(string)
 	if !ok {
 		return false
 	}
-	return iss == r.provider.IssuerUrl
+	return iss == r.jwks.IssuerUrl
 }
 
 // validateExpiration validates that the token has not expired
-func (r *OAuthMiddleware) validateExpiration(claims jwt.MapClaims) bool {
+func (r *AuthMiddleware) validateExpiration(claims jwt.MapClaims) bool {
 	exp, ok := claims["exp"].(float64)
 	if !ok {
 		return false
@@ -160,7 +160,7 @@ func (r *OAuthMiddleware) validateExpiration(claims jwt.MapClaims) bool {
 }
 
 // validateScope validates that the token has required scopes
-func (r *OAuthMiddleware) validateScope(claims jwt.MapClaims) bool {
+func (r *AuthMiddleware) validateScope(claims jwt.MapClaims) bool {
 	scope, ok := claims["scope"].(string)
 	if !ok {
 		return false
@@ -176,7 +176,7 @@ func (r *OAuthMiddleware) validateScope(claims jwt.MapClaims) bool {
 }
 
 // sendUnauthorized sends a 401 response with WWW-Authenticate header
-func (r *OAuthMiddleware) sendUnauthorized(w http.ResponseWriter, rq *http.Request) {
+func (r *AuthMiddleware) sendUnauthorized(w http.ResponseWriter, rq *http.Request) {
 	metadataURL := r.TargetAudience + "/.well-known/oauth-protected-resource"
 	// tell client where to get resource metadata to authenticate
 	w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Bearer resource_metadata="%s", scope="openid profile email"`, metadataURL))
@@ -185,7 +185,7 @@ func (r *OAuthMiddleware) sendUnauthorized(w http.ResponseWriter, rq *http.Reque
 
 // OAuth 2.1 metadata endpoint (no authorization required)
 // clients will use this to discover the resource server's authorization server and scopes
-func (r *OAuthMiddleware) HandleProtectedResourceMetadata(w http.ResponseWriter, rq *http.Request) {
+func (r *AuthMiddleware) HandleProtectedResourceMetadata(w http.ResponseWriter, rq *http.Request) {
 	// Set CORS headers
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")

@@ -19,7 +19,7 @@ type McpServer struct {
 func (r *McpServer) Start() {
 
 	// Initialize OAuth middleware
-	oauthMiddleWare := &auth.OAuthMiddleware{
+	oauthMiddleWare := &auth.AuthMiddleware{
 		IssuerUrl:      r.IssuerURL,
 		TargetAudience: r.TargetAudience,
 		Scope:          r.Scope,
